@@ -1,0 +1,229 @@
+#: import ew kivy.uix.effectwidget
+
+<WindowManager>:
+    MusicScreen:
+    PlaylistScreen:
+
+<MusicScreen>:
+    name: "musicScreen"
+
+    ewc: ewc
+    sc: sc
+    songcover: songcover
+    songname: songname
+    songartist: songartist
+    currenttime: currenttime
+    totaltime: totaltime
+    progress: progress
+    volumebtn: volumebtn
+    shufflebtn: shufflebtn
+    playbtn: playbtn
+    replaybtn: replaybtn
+
+    EffectWidget:
+        effects: [ew.VerticalBlurEffect(size=10), ew.HorizontalBlurEffect(size=10)]
+        FitImage:
+            id: ewc
+            source: 'image/galaxy.png'
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: ('10dp', '30dp', '10dp', '50dp')
+
+                
+        SongCover:
+            id: sc
+            size: (250,250)
+            size_hint: None,None
+            pos_hint: {'center_x': .5}
+            RotatingImage:
+                id: songcover
+                angle: sc.angle
+                source: 'image/horizon.png'
+                radius: [250,]
+
+        Widget:
+            size_hint: None, None
+            height: '25dp'
+
+        Label:
+            id: songname
+            text:'Horizon Music Player'
+            bold: True
+            font_size: '25sp'
+            size_hint_y: None
+            height: self.texture_size[1]
+
+        Label:
+            id: songartist
+            text:'Astro Jasairo'
+            size_hint_y: None
+            height: self.texture_size[1]
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            MDBoxLayout:                
+                Label:
+                    id: currenttime
+                    text: "00:00"
+                    pos_hint: {'center_x': 0, 'center_y': -0.2}
+                    size_hint: 0.5,0.5
+                    font_size: 15
+                Label:
+                    text: ""
+                    size_hint: 1,1
+                Label:
+                    id: totaltime
+                    text: "00:00"
+                    pos_hint: {'center_x': 1, 'center_y': -0.2}
+                    size_hint: 0.5,0.5
+                    font_size: 15
+            Slider:
+                id: progress
+                color: [.7 , 0 , 0 , 1]
+                min:0
+                max:100
+                value:0
+                step: 1
+                background_width: '20dp'
+                cursor_image: ''
+                cursor_size: ('10dp', '10dp')
+                value_track_color: [249/255, 105/255, 14/255, 1]
+                value_track: True
+            MDBoxLayout:
+                md_bg_color: 0, 0, 0, .5
+                MyIcon:
+                    id: volumebtn
+                    icon: 'volume-high'
+                    on_press: root.volumeToggle()
+                MyIcon:
+                    id: shufflebtn
+                    icon: 'shuffle-disabled'
+                    on_press: root.shuffleToggle()
+                MyIcon:
+                    icon: 'skip-previous'
+                    on_press: root.previousAudio()
+                    on_press: sc.rotate() if root.play_status == False else True
+                MyIcon:
+                    id: playbtn
+                    icon: 'play'
+                    on_press: sc.rotate()
+                    on_press: root.playAndStopAudio()
+                MyIcon:
+                    icon: 'skip-next'
+                    on_press: root.nextAudio()
+                    on_press: sc.rotate() if root.play_status == False else True
+                MyIcon:
+                    id: replaybtn
+                    icon: 'repeat-off'
+                    on_press: root.replayToggle()
+                MyIcon:
+                    icon: 'playlist-music'
+                    on_release:
+                        app.root.current = "playlistScreen"
+                        root.manager.transition.direction = "left"
+
+<PlaylistScreen>:
+    name: "playlistScreen"
+
+    listspace: listspace
+
+    EffectWidget:
+        effects: [ew.VerticalBlurEffect(size=10), ew.HorizontalBlurEffect(size=10)]
+        FitImage:
+            source: 'image/galaxy.png'
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: ('10dp', '30dp', '10dp', '50dp')
+        MDBoxLayout:
+            size_hint: (1, 0.1)
+            pos_hint: {'center_y': -0.5}
+            MyIcon:
+                icon: 'chevron-left'
+                on_release:
+                    app.root.current = "musicScreen"
+                    root.manager.transition.direction = "right"
+            Label:
+                text: "MY PLAYLIST"
+                font_size: 25
+            MyIcon:
+                icon: 'refresh'
+                on_press: listspace.refreshPlaylist() if root.load_status == False else True
+
+        ScrollView:
+            PlaylistSpace:
+                id: listspace
+                cols: 1
+                adaptive_height: True
+                padding: 0, "24dp", 0, "24dp"
+                spacing: '12dp'
+
+<MyMusic@MDCard>
+    cardimage: cardimage
+    cardtitle: cardtitle
+    cardartist: cardartist
+    cardbtn: cardbtn
+
+    size_hint_y: None
+    height: '72dp'
+    radius: 12
+    md_bg_color: 0, 0, 0, .5
+    on_leave: self.md_bg_color = 0, 0, 0, .5
+    on_enter: self.md_bg_color = 218/255, 223/255, 1, .5
+
+    Image:
+        id: cardimage
+        source: "image/horizon.png"
+        size_hint_y: None
+        size_hint_x: .3
+        size: (50,50)
+        pos_hint: {'center_y': .5}
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        adaptive_height: True
+        spacing: "4dp"
+        padding: "8dp", 0, "12dp", "12dp"
+
+        MDLabel:
+            id: cardtitle
+            text: "Song title"
+            adaptive_height: True
+            bold: True
+            shorten: True
+            halign: "left"
+            font_style: "H5"
+            color: 108/255, 122/255, 137/255, 1
+        
+        MDLabel:
+            id: cardartist
+            text: "Song artist"
+            adaptive_height: True
+            shorten: True
+            bold: True
+            halign: "left"
+            color: 108/255, 122/255, 137/255, 1
+
+    MyIcon:
+        id: cardbtn
+        icon: 'play'
+
+<MyIcon@MDIconButton>:
+    color: [.7, 0, 0, 1]
+    size_hint: None, 0.7
+    user_font_size: '20sp'
+    theme_text_color: 'Custom'
+    size: ('20dp', '20dp')
+    text_color: [1, 1, 1, 1]
+    pos_hint: {'center_y': 0.5}
+
+<RotatingImage@FitImage>:
+    angle: 0
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle: root.angle
+            origin: self.center
+    canvas.after:
+        PopMatrix
