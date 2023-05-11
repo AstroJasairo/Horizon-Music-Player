@@ -12,11 +12,12 @@ from kivy.properties import ObjectProperty
 from kivy.properties import NumericProperty
 from kivy.properties import BooleanProperty
 from kivymd.app import MDApp
+from kivymd.uix.card.card import MDCard
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.gridlayout import MDGridLayout
-from kivymd.uix.card.card import MDCard
 from python.MusicMetadata import MusicMetadata
 
+os.environ['KIVY_AUDIO'] = 'ffpyplayer'
 Builder.load_file('kv/main.kv')
 Window.size = (360, 600)
 
@@ -40,6 +41,7 @@ class MusicScreen(Screen):
     volume_status = BooleanProperty(defaultvalue = True)
     shuffle_status = BooleanProperty(defaultvalue = False)
     play_status = BooleanProperty(defaultvalue = False)
+    pause_status = BooleanProperty(defaultvalue = False)
     replay_status = NumericProperty(defaultvalue = 0)
 
     # Lay danh sach bai hat tu thu muc music
@@ -66,7 +68,6 @@ class MusicScreen(Screen):
 
     # Phat bai hat hien tai
     def playAudio(self):
-        self.loadAudio(self.current_song_pos)
         if self.play_status == True: return False
         if self.volume_status:
             self.sound.volume = 1
@@ -91,6 +92,31 @@ class MusicScreen(Screen):
             self.progress.value = 0
             self.play_status = False
 
+    # Tam dung bai hat hien tai
+    def pauseAudio(self):
+        if self.play_status == True:
+            self.sound.stop()
+            self.progressBarEvent.cancel()
+            self.updateTimeEvent.cancel()
+            self.pause_status = True
+            self.play_status = False
+
+    # Tiep tuc bai hat hien tai
+    def continueAudio(self):
+        if self.play_status == True: return False
+        self.sound.volume = 0
+        self.sound.play()
+        time.sleep(1.5)
+        self.sound.seek(self.progress.value)
+        if self.volume_status:
+            self.sound.volume = 1
+        else:
+            self.sound.volume = 0
+        self.progressBarEvent = Clock.schedule_interval(self.progressBarUpdate, 1)
+        self.updateTimeEvent = Clock.schedule_interval(self.timeUpdate, 1)
+        self.pause_status = False
+        self.play_status = True
+
     # Chon bai hat ngau nhien
     def shuffleAudio(self):
         self.loadAudio(random.randrange(0,self.song_count))
@@ -109,7 +135,7 @@ class MusicScreen(Screen):
     # Xu li lap lai bai hat
     def replayAudio(self):
         if self.replay_status == 0:
-            self.playAndStopAudio()
+            self.playAndPauseAudio()
             self.sc.rotate()
         elif self.replay_status == 1:
             self.stopAudio()
@@ -156,13 +182,17 @@ class MusicScreen(Screen):
         self.playAudio()
         
     # Nut phat/dung bai hat hien tai
-    def playAndStopAudio(self):
+    def playAndPauseAudio(self):
         if self.play_status:
-            self.stopAudio()
+            self.pauseAudio()
             self.playbtn.icon = 'play'
         else:
-            self.playAudio()
-            self.playbtn.icon = 'stop'
+            if self.pause_status:
+                self.continueAudio()
+            else:
+                self.loadAudio(self.current_song_pos)
+                self.playAudio()
+            self.playbtn.icon = 'pause'
 
     # Nut bai hat ke tiep
     def nextAudio(self):
