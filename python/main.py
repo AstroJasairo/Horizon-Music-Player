@@ -69,15 +69,15 @@ class MusicScreen(Screen):
     # Phat bai hat hien tai
     def playAudio(self):
         if self.play_status == True: return False
-        if self.volume_status:
-            self.sound.volume = 1
-        else:
-            self.sound.volume = 0
         self.songname.text = MusicMetadata.getMetadata(self.current_song, "title")
         self.songartist.text = MusicMetadata.getMetadata(self.current_song, "artist")
         self.ewc.source = MusicMetadata.getCover(self.current_song)
         self.songcover.source = MusicMetadata.getCover(self.current_song)
         self.sound.play()
+        if self.volume_status:
+            self.sound.volume = 1
+        else:
+            self.sound.volume = 0
         self.progressBarEvent = Clock.schedule_interval(self.progressBarUpdate, 1)
         self.updateTimeEvent = Clock.schedule_interval(self.timeUpdate, 1)
         self.play_status = True
@@ -178,7 +178,7 @@ class MusicScreen(Screen):
             self.loadAudio(self.song_count - 1)
         else:
             self.loadAudio(self.current_song_pos - 1)
-        self.playbtn.icon = 'stop'
+        self.playbtn.icon = 'pause'
         self.playAudio()
         
     # Nut phat/dung bai hat hien tai
@@ -203,7 +203,7 @@ class MusicScreen(Screen):
             self.loadAudio(0)
         else:
             self.loadAudio(self.current_song_pos + 1)
-        self.playbtn.icon = 'stop'
+        self.playbtn.icon = 'pause'
         self.playAudio()
 
     # Nut thay doi trang thai phat lai bai hat
