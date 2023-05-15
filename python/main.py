@@ -38,7 +38,7 @@ class MusicScreen(Screen):
     playlistspace = ObjectProperty(None)
    
     # Cac bien luu giu trang thai cua he thong
-    volume_status = BooleanProperty(defaultvalue = True)
+    volume_status = NumericProperty(defaultvalue = 3)
     shuffle_status = BooleanProperty(defaultvalue = False)
     play_status = BooleanProperty(defaultvalue = False)
     pause_status = BooleanProperty(defaultvalue = False)
@@ -74,10 +74,7 @@ class MusicScreen(Screen):
         self.ewc.source = MusicMetadata.getCover(self.current_song)
         self.songcover.source = MusicMetadata.getCover(self.current_song)
         self.sound.play()
-        if self.volume_status:
-            self.sound.volume = 1
-        else:
-            self.sound.volume = 0
+        self.volumeChecking()
         self.progressBarEvent = Clock.schedule_interval(self.progressBarUpdate, 1)
         self.updateTimeEvent = Clock.schedule_interval(self.timeUpdate, 1)
         self.play_status = True
@@ -108,10 +105,7 @@ class MusicScreen(Screen):
         self.sound.play()
         time.sleep(1.5)
         self.sound.seek(self.progress.value)
-        if self.volume_status:
-            self.sound.volume = 1
-        else:
-            self.sound.volume = 0
+        self.volumeChecking()
         self.progressBarEvent = Clock.schedule_interval(self.progressBarUpdate, 1)
         self.updateTimeEvent = Clock.schedule_interval(self.timeUpdate, 1)
         self.pause_status = False
@@ -148,17 +142,36 @@ class MusicScreen(Screen):
         if self.progress.collide_point(*touch.pos):
             self.sound.seek(self.progress.value)
 
+    # Kiem tra am luong
+    def volumeChecking(self):
+        if self.volume_status == 3:
+            self.sound.volume = 1
+        elif self.volume_status == 2:
+            self.sound.volume = 0.5
+        elif self.volume_status == 1:
+            self.sound.volume = 0.25
+        else:
+            self.sound.volume = 0
+
 #================================================BUTTON================================================
     # Nut bat tat am luong
     def volumeToggle(self):
-        if self.volume_status:
-            self.sound.volume = 0
-            self.volumebtn.icon = 'volume-off'
-            self.volume_status = False
-        else:
+        if self.volume_status == 0:
+            self.sound.volume = 0.25
+            self.volumebtn.icon = 'volume-low'
+            self.volume_status = 1
+        elif self.volume_status == 1:
+            self.sound.volume = 0.5
+            self.volumebtn.icon = 'volume-medium'
+            self.volume_status = 2
+        elif self.volume_status == 2:
             self.sound.volume = 1
             self.volumebtn.icon = 'volume-high'
-            self.volume_status = True
+            self.volume_status = 3
+        else:
+            self.sound.volume = 0
+            self.volumebtn.icon = 'volume-off'
+            self.volume_status = 0
 
     # Nut bat tat chon bai hat ngau nhien
     def shuffleToggle(self):
@@ -221,7 +234,7 @@ class MusicScreen(Screen):
 
 class SongCover(MDBoxLayout):
     angle = NumericProperty()
-    anim = Animation(angle=-360, d=3, t='linear')
+    anim = Animation(angle=-360, d=10, t='linear')
     anim += Animation(angle=0, d=0, t='linear')
     anim.repeat = True
 
