@@ -1,4 +1,4 @@
-from python.main import HorizonApp
+from python.HorizonApp import HorizonApp
 
 def main():
     HorizonApp().run()

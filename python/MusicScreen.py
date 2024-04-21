@@ -1,27 +1,19 @@
 import os
-import kivy
 import time
 import random
 from kivy.clock import Clock
-from kivy.lang import Builder
 from kivy.animation import Animation
-from kivy.uix.screenmanager import Screen, ScreenManager
-from kivy.core.window import Window
+from kivy.uix.screenmanager import Screen
 from kivy.core.audio import SoundLoader
 from kivy.properties import ObjectProperty
 from kivy.properties import NumericProperty
 from kivy.properties import BooleanProperty
-from kivymd.app import MDApp
-from kivymd.uix.card.card import MDCard
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.gridlayout import MDGridLayout
 from python.MusicMetadata import MusicMetadata
-
-os.environ['KIVY_AUDIO'] = 'ffpyplayer'
-Builder.load_file('kv/main.kv')
-Window.size = (360, 600)
+from python.MusicData import MusicData
 
 class MusicScreen(Screen):
+
     # Cac module kivy
     ewc = ObjectProperty(None)
     sc = ObjectProperty(None)
@@ -53,17 +45,22 @@ class MusicScreen(Screen):
     song_count = len(playlist)
 
     # Tai bai hat dau tien cua playlist len current
-    current_song_pos = 0
-    current_song = playlist[current_song_pos]
+    current_song_pos = MusicData.current_song_pos
+    current_song = MusicData.current_song
     sound = SoundLoader.load('{}/{}'.format(music_dir, current_song))
 
     # Tai bai hat tai vi tri pos trong playlist len current
     def loadAudio(self, pos):
-        self.current_song_pos = pos
+        if MusicData.flag == True:
+            self.current_song_pos = MusicData.current_song_pos
+            MusicData.flag = False
+        else:
+            self.current_song_pos = pos
         self.current_song = self.playlist[self.current_song_pos]
         self.sound = SoundLoader.load('{}/{}'.format(self.music_dir, self.current_song))
         self.totaltime.text = time.strftime('%M:%S', time.gmtime(self.sound.length))
         self.progress.max = str(self.sound.length)
+        self.progress.value = 0
         self.progress.bind(on_touch_up = self.catchProgressChange)
 
     # Phat bai hat hien tai
@@ -77,6 +74,7 @@ class MusicScreen(Screen):
         self.volumeChecking()
         self.progressBarEvent = Clock.schedule_interval(self.progressBarUpdate, 1)
         self.updateTimeEvent = Clock.schedule_interval(self.timeUpdate, 1)
+        self.changeSongEvent = Clock.schedule_interval(self.changeSong, 0.1)
         self.play_status = True
 
     # Dung bai hat hien tai
@@ -113,7 +111,12 @@ class MusicScreen(Screen):
 
     # Chon bai hat ngau nhien
     def shuffleAudio(self):
-        self.loadAudio(random.randrange(0,self.song_count))
+        random_pos = -1
+        if self.song_count > 1:
+            random_pos = random.randrange(0,self.song_count)
+            while random_pos == self.current_song_pos:
+                random_pos = random.randrange(0,self.song_count)
+            self.loadAudio(random_pos)
 
     # Xu li thanh progress bar chay theo thoi gian bai hat
     def progressBarUpdate(self, value):
@@ -152,6 +155,13 @@ class MusicScreen(Screen):
             self.sound.volume = 0.25
         else:
             self.sound.volume = 0
+
+    # Ham bat xu li thay doi bai hat
+    def changeSong(self, t):
+        if MusicData.flag:
+            self.stopAudio()
+            self.loadAudio(0)
+            self.playAudio()
 
 #================================================BUTTON================================================
     # Nut bat tat am luong
@@ -244,50 +254,3 @@ class SongCover(MDBoxLayout):
             self.anim.stop(self)
         else:
             self.anim.start(self)
-
-class PlaylistScreen(Screen):
-    load_status = BooleanProperty(defaultvalue = False)
-
-class PlaylistSpace(MDGridLayout):
-    # Load playlist
-    def refreshPlaylist(self):
-        music_dir = "music"
-        music_files = os.listdir(music_dir)
-        playlist = [x for x in music_files if x.endswith(('.mp3'))]
-        pos = 0
-        for song in playlist:
-            title = MusicMetadata.getMetadata(song, "title")
-            artist = MusicMetadata.getMetadata(song, "artist")
-            cover = MusicMetadata.getCover(song)
-            self.add_widget(MyMusic(title, artist, cover, pos))
-            pos += 1       
-        PlaylistScreen.load_status = True                
-
-class MyMusic(MDCard):
-    # Tao moi music item
-    def __init__(self, title, artist, cover, pos, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.cardimage.source = cover
-        self.cardtitle.text = title
-        self.cardartist.text = artist
-        self.cardbtn.bind(on_press = lambda x:self.playThis(pos))
-    
-    # Thay doi bai hat hien tai
-    def playThis(self, pos):
-        MusicScreen.current_song_pos = pos
-
-class WindowManager(ScreenManager):
-    pass
-
-class HorizonApp(MDApp):
-    def build(self):
-        return WindowManager()
-    
-    def on_start(self):
-        music_dir = "music"
-        music_files = os.listdir(music_dir)
-        playlist = [x for x in music_files if x.endswith(('.mp3'))]
-        MusicMetadata.makeCover(playlist)
-
-    def on_stop(self):
-        MusicMetadata.deleteAllCover()

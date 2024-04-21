@@ -1,10 +1,10 @@
 import os
 import glob
-from mutagen.easyid3 import EasyID3
-from mutagen.id3 import ID3
-from mutagen.mp3 import MP3
-from io import BytesIO
 from PIL import Image
+from io import BytesIO
+from mutagen.mp3 import MP3
+from mutagen.id3 import ID3
+from mutagen.easyid3 import EasyID3
 
 class MusicMetadata():
     # Ham lay sieu du lieu dang chuoi theo key
@@ -27,6 +27,13 @@ class MusicMetadata():
             pict = tags.get("APIC:").data
             im = Image.open(BytesIO(pict))
             im.save("image/" + MusicMetadata.getMetadata(song, "title") + ".jpg")
+
+    # Ham tao cover cho mot bai hat
+    def makeOneCover(song):
+        tags = ID3("music/" + song)
+        pict = tags.get("APIC:").data
+        im = Image.open(BytesIO(pict))
+        im.save("image/" + MusicMetadata.getMetadata(song, "title") + ".jpg")
 
     # Ham xoa tat ca cover
     def deleteAllCover():

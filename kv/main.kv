@@ -1,6 +1,7 @@
+#:kivy 2.3
 #: import ew kivy.uix.effectwidget
 
-<WindowManager>:
+<ScreenManager>:
     MusicScreen:
     PlaylistScreen:
 
@@ -128,6 +129,9 @@
 
     listspace: listspace
 
+
+    on_enter: listspace.refreshPlaylist() if root.load_status == False else True
+
     EffectWidget:
         effects: [ew.VerticalBlurEffect(size=10), ew.HorizontalBlurEffect(size=10)]
         FitImage:
@@ -136,6 +140,7 @@
     MDBoxLayout:
         orientation: 'vertical'
         padding: ('10dp', '30dp', '10dp', '50dp')
+
         MDBoxLayout:
             size_hint: (1, 0.1)
             pos_hint: {'center_y': -0.5}
@@ -148,8 +153,8 @@
                 text: "MY PLAYLIST"
                 font_size: 25
             MyIcon:
-                icon: 'refresh'
-                on_press: listspace.refreshPlaylist() if root.load_status == False else True
+                icon: 'plus-thick'
+                on_press: root.open_file_dialog()
 
         ScrollView:
             PlaylistSpace:
@@ -208,6 +213,7 @@
     MyIcon:
         id: cardbtn
         icon: 'play'
+
 
 <MyIcon@MDIconButton>:
     color: [.7, 0, 0, 1]
